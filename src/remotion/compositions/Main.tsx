@@ -23,39 +23,37 @@ const { fontFamily } = loadFont("normal", {
 /**
  * Main composition - "Global payments are a pain" animation.
  *
- * Matched to reference frames at 200ms intervals (30fps):
+ * Updated timeline with 300ms breathing room per text phrase:
  *
- * Ref 1-4   (0-600ms)    F0-9:    "Global payments" gradient reveal + fade
- * Ref 5     (800ms)       F10-14:  "are" appears
- * Ref 6     (1000ms)      F13-17:  "are a" sequence
- * Ref 7-9   (1200-1600ms) F17-24:  "a pain" reveals and holds
- * Ref 10-12 (1800-2200ms) F27-36:  3D perspective rotation + camera zoom
- * Ref 13-15 (2400-2800ms) F36-42:  Extreme zoom through "pain" text
- * Ref 16    (3000ms)      F45:     Text gone, grid + white glow point
- * Ref 17-19 (3200-3600ms) F48-54:  Light streak across grid
- * Ref 20    (3800ms)      F57:     Red card + white sphere appear
- * Ref 21-28 (4000-5400ms) F60-81:  Sphere approaches card slowly
- * Ref 29    (5600ms)      F84:     Cyan disc appears (merge)
- * Ref 30-31 (5800-6000ms) F87-90:  Cylinder morph
- * Ref 32    (6200ms)      F93:     Final close-up zoom
- * Buffer                  F93-120: Hold + gentle fade
+ * Scene 1 (F0-64):     Text reveals with holds
+ *   "Global payments"  F0-17   (reveal + 300ms hold + fade)
+ *   "are"              F17-32  (reveal + 300ms hold + fade)
+ *   "are a"            F31-46  (reveal + 300ms hold + fade)
+ *   "a pain"           F44-62  (reveal + 300ms hold + fade into perspective)
+ *
+ * Scene 2 (F56-78):    "a pain" 3D perspective zoom-through
+ * Scene 3 (F78-94):    Light streak transition on grid
+ * Scene 4 (F90-120):   Red card + white sphere approach
+ * Scene 5 (F118-148):  Cyan cylinder morph + zoom
+ * Buffer (F148-160):   Hold
  */
 export const Main: React.FC = () => {
   const frame = useCurrentFrame();
-  // timing managed via startFrame offsets per scene
 
   // === BACKGROUND LAYERS ===
 
-  // Flat grid (text scenes: frames 0-45)
-  const flatGridOpacity = interpolate(frame, [0, 2, 40, 48], [0.2, 0.25, 0.25, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  // Flat grid (text scenes: frames 0-78)
+  const flatGridOpacity = interpolate(
+    frame,
+    [0, 2, 72, 80],
+    [0.2, 0.25, 0.25, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
 
-  // Perspective grid (3D scenes: frames 45-115)
+  // Perspective grid (3D scenes: frames 76-152)
   const perspGridOpacity = interpolate(
     frame,
-    [42, 48, 105, 115],
+    [76, 82, 142, 152],
     [0, 0.45, 0.45, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
@@ -63,7 +61,7 @@ export const Main: React.FC = () => {
   // Bottom glow
   const bottomGlowOpacity = interpolate(
     frame,
-    [0, 3, 40, 48, 50, 55, 105, 115],
+    [0, 3, 72, 80, 84, 90, 142, 152],
     [0.3, 0.4, 0.4, 0, 0, 0.25, 0.25, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
@@ -91,32 +89,27 @@ export const Main: React.FC = () => {
         {/* Perspective grid (3D object scenes) */}
         {perspGridOpacity > 0.01 && (
           <div style={{ opacity: perspGridOpacity }}>
-            <PerspectiveGridAnimated startFrame={42} />
+            <PerspectiveGridAnimated startFrame={76} />
           </div>
         )}
 
         {/* Bottom glow */}
         <BottomGlow opacity={bottomGlowOpacity} />
 
-        {/* Scene 1: Text reveal — "Global payments" → "are" → "a pain" */}
-        {/* Frames 0-28 */}
+        {/* Scene 1: Text reveal with breathing room */}
         <TextRevealScene startFrame={0} />
 
         {/* Scene 2: "a pain" 3D perspective zoom-through */}
-        {/* Starts at frame 24 (overlaps end of text scene), ends ~46 */}
-        <PerspectiveTextScene startFrame={24} />
+        <PerspectiveTextScene startFrame={56} />
 
         {/* Scene 3: Light streak transition */}
-        {/* Frames 44-60 */}
-        <LightStreakTransition startFrame={44} />
+        <LightStreakTransition startFrame={78} />
 
         {/* Scene 4: Red card + white sphere */}
-        {/* Frames 55-85 */}
-        <ObjectsScene startFrame={55} />
+        <ObjectsScene startFrame={90} />
 
         {/* Scene 5: Cyan cylinder morphing finale */}
-        {/* Frames 82-112 */}
-        <CyanCylinderScene startFrame={82} />
+        <CyanCylinderScene startFrame={122} />
 
         {/* Ambient floating particles */}
         <FloatingParticles />

@@ -27,7 +27,7 @@ export const ObjectsScene: React.FC<{
   const { fps } = useVideoConfig();
   const f = frame - startFrame;
 
-  if (f < 0 || f > 30) return null;
+  if (f < 0 || f > 36) return null;
 
   // Card entrance - quick spring
   const cardEntrance = spring({
@@ -45,20 +45,20 @@ export const ObjectsScene: React.FC<{
 
   // Sphere position - starts far bottom-right, moves toward card at upper-left
   // Movement is slow and steady over frames 0-27 (ref frames 20-28)
-  const sphereX = interpolate(f, [2, 27], [380, 50], {
+  const sphereX = interpolate(f, [2, 32], [380, 50], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.inOut(Easing.quad),
   });
 
-  const sphereY = interpolate(f, [2, 27], [250, 30], {
+  const sphereY = interpolate(f, [2, 32], [250, 30], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.inOut(Easing.quad),
   });
 
   // Phase: merge begins - both objects fade
-  const mergeProgress = interpolate(f, [25, 28], [0, 1], {
+  const mergeProgress = interpolate(f, [30, 34], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.in(Easing.quad),
@@ -67,7 +67,7 @@ export const ObjectsScene: React.FC<{
 
   // Motion trail length - longer when sphere is moving fast
   const sphereSpeed = Math.abs(
-    interpolate(f, [2, 15, 27], [8, 12, 3], {
+    interpolate(f, [2, 18, 32], [8, 12, 3], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
     })
@@ -75,7 +75,7 @@ export const ObjectsScene: React.FC<{
   const trailLength = sphereSpeed * 18;
 
   // Trail angle - follows motion direction
-  const trailAngle = interpolate(f, [2, 27], [-35, -25], {
+  const trailAngle = interpolate(f, [2, 32], [-35, -25], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });

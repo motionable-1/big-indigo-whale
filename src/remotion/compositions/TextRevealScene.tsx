@@ -20,34 +20,35 @@ interface TextPhase {
   exitDone: number;   // frame when fully invisible
 }
 
+// +9 frames breathing room on each phrase (~300ms hold at full opacity)
 const phases: TextPhase[] = [
   {
     text: "Global payments",
-    enter: -3,      // already mid-reveal at frame 0
+    enter: -3,       // already mid-reveal at frame 0
     revealDone: 5,
-    exitStart: 6,
-    exitDone: 9,
+    exitStart: 14,   // hold 9 frames after reveal
+    exitDone: 17,
   },
   {
     text: "are",
-    enter: 9,
-    revealDone: 12,
-    exitStart: 13,
-    exitDone: 15,
+    enter: 17,
+    revealDone: 20,
+    exitStart: 29,   // hold 9 frames
+    exitDone: 32,
   },
   {
     text: "are a",
-    enter: 14,
-    revealDone: 17,
-    exitStart: 18,
-    exitDone: 20,
+    enter: 31,
+    revealDone: 34,
+    exitStart: 43,   // hold 9 frames
+    exitDone: 46,
   },
   {
     text: "a pain",
-    enter: 18,
-    revealDone: 22,
-    exitStart: 24,  // fades as perspective scene takes over
-    exitDone: 27,
+    enter: 44,
+    revealDone: 48,
+    exitStart: 58,   // fades as perspective scene takes over
+    exitDone: 62,
   },
 ];
 
@@ -57,7 +58,7 @@ export const TextRevealScene: React.FC<{
   const frame = useCurrentFrame();
   const f = frame - startFrame;
 
-  if (f < 0 || f > 28) return null;
+  if (f < 0 || f > 64) return null;
 
   return (
     <div
