@@ -1,56 +1,163 @@
-import { AbsoluteFill, Artifact, useCurrentFrame, useVideoConfig } from "remotion";
-import { loadFont } from "@remotion/google-fonts/SpaceMono";
+import React from "react";
+import {
+  AbsoluteFill,
+  Artifact,
+  useCurrentFrame,
+  useVideoConfig,
+  interpolate,
+} from "remotion";
+import { loadFont } from "@remotion/google-fonts/Inter";
+import { FlatGrid, BottomGlow } from "./PerspectiveGrid";
+import { TextRevealScene } from "./TextRevealScene";
+import { PerspectiveTextScene } from "./PerspectiveTextScene";
+import { LightStreakTransition } from "./LightStreakTransition";
+import { ObjectsScene } from "./ObjectsScene";
+import { CyanCylinderScene } from "./CyanCylinderScene";
+import { PerspectiveGridAnimated } from "./PerspectiveGridAnimated";
 
-const LoaderDots = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+const { fontFamily } = loadFont("normal", {
+  weights: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+});
 
-  const dot = (index: number) => {
-    const phase = (frame / fps) * 2 * Math.PI + index * 0.8;
-    return 0.35 + Math.max(0, Math.sin(phase)) * 0.65;
-  };
-
-  return (
-    <span className="inline-flex gap-1">
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="inline-block text-sky-300"
-          style={{ opacity: dot(i) }}
-        >
-          .
-        </span>
-      ))}
-    </span>
-  );
-};
-
+/**
+ * Main composition - "Global payments are a pain" animation.
+ *
+ * Timeline (at 30fps, ~8 seconds total = 240 frames):
+ *
+ * Scene 1 (0-60):    Text reveal - "Global payments" → "are" → "a pain"
+ * Scene 2 (48-105):  "a pain" with 3D perspective rotation + camera fly-through
+ * Scene 3 (90-115):  Light streak transition
+ * Scene 4 (105-175): Red card + white sphere on perspective grid
+ * Scene 5 (160-230): Cyan cylinder morphing + zoom finale
+ * Buffer (230-240):  Hold on black
+ */
 export const Main: React.FC = () => {
-  const { fontFamily } = loadFont();
   const frame = useCurrentFrame();
+  // Scene timing managed by frame offsets
+
+  // Grid visibility - flat grid for text scenes, perspective grid for 3D scenes
+  const flatGridOpacity = interpolate(frame, [0, 5, 85, 100], [0, 0.25, 0.25, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const perspectiveGridOpacity = interpolate(
+    frame,
+    [95, 110, 210, 225],
+    [0, 0.3, 0.3, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
+
+  // Bottom glow visibility
+  const bottomGlowOpacity = interpolate(
+    frame,
+    [0, 10, 85, 95, 110, 120, 210, 225],
+    [0, 0.4, 0.4, 0, 0, 0.3, 0.3, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
+
   return (
     <>
-      {/* Leave this here to generate a thumbnail */}
+      {/* Thumbnail artifact */}
       {frame === 0 && (
         <Artifact content={Artifact.Thumbnail} filename="thumbnail.jpeg" />
       )}
-      <AbsoluteFill className="flex items-center justify-center bg-[#0f1115]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(99,102,241,0.28),transparent_45%),radial-gradient(circle_at_70%_60%,rgba(16,185,129,0.2),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:48px_48px] opacity-40" />
-        <div
-          className="flex flex-col items-center gap-4 text-center text-white drop-shadow-[0_12px_32px_rgba(0,0,0,0.55)]"
-          style={{ fontFamily, fontWeight: 700, letterSpacing: "0.01em" }}
-        >
-          <div className="text-4xl md:text-5xl font-bold">
-            <span className="font-extrabold text-sky-300">Motionabl</span> is
-            building your video
-            <LoaderDots />
-          </div>
-          <div className="text-base md:text-lg text-white/70">
-            Rendering scenes, timing transitions, and polishing frames.
-          </div>
+
+      <AbsoluteFill
+        style={{
+          backgroundColor: "#000000",
+          fontFamily,
+          overflow: "hidden",
+        }}
+      >
+        {/* Flat grid background (text scenes) */}
+        <div style={{ opacity: flatGridOpacity }}>
+          <FlatGrid opacity={1} />
         </div>
+
+        {/* Perspective grid (3D object scenes) */}
+        <div style={{ opacity: perspectiveGridOpacity }}>
+          <PerspectiveGridAnimated startFrame={95} />
+        </div>
+
+        {/* Bottom glow */}
+        <BottomGlow opacity={bottomGlowOpacity} />
+
+        {/* Scene 1: Text reveal sequence */}
+        <TextRevealScene startFrame={0} />
+
+        {/* Scene 2: Perspective text + camera fly-through */}
+        <PerspectiveTextScene startFrame={48} />
+
+        {/* Scene 3: Light streak transition */}
+        <LightStreakTransition startFrame={90} />
+
+        {/* Scene 4: Red card + white sphere */}
+        <ObjectsScene startFrame={105} />
+
+        {/* Scene 5: Cyan cylinder morphing finale */}
+        <CyanCylinderScene startFrame={160} />
+
+        {/* Ambient floating particles */}
+        <FloatingParticles />
       </AbsoluteFill>
     </>
+  );
+};
+
+/**
+ * Subtle ambient floating particles for visual depth.
+ */
+const FloatingParticles: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const time = frame / fps;
+
+  const particles = React.useMemo(() => {
+    return Array.from({ length: 8 }, (_, i) => ({
+      id: i,
+      x: (i * 247 + 100) % 1920,
+      y: (i * 389 + 200) % 1080,
+      size: 2 + (i % 3) * 1.5,
+      speedX: (i % 2 === 0 ? 1 : -1) * (0.3 + (i * 0.1)),
+      speedY: (i % 3 === 0 ? 1 : -1) * (0.2 + (i * 0.08)),
+      phase: i * 0.7,
+    }));
+  }, []);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        pointerEvents: "none",
+        opacity: 0.3,
+      }}
+    >
+      {particles.map((p) => {
+        const x = p.x + Math.sin(time * p.speedX + p.phase) * 40;
+        const y = p.y + Math.cos(time * p.speedY + p.phase) * 30;
+        const particleOpacity =
+          0.3 + Math.sin(time * 1.5 + p.phase) * 0.3;
+
+        return (
+          <div
+            key={p.id}
+            style={{
+              position: "absolute",
+              left: x,
+              top: y,
+              width: p.size,
+              height: p.size,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.6)",
+              filter: `blur(${p.size > 3 ? 1 : 0}px)`,
+              opacity: particleOpacity,
+            }}
+          />
+        );
+      })}
+    </div>
   );
 };
