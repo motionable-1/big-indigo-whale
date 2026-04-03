@@ -30,7 +30,8 @@ export const InfinityDiscScene: React.FC<{
   const floatRotate = Math.sin((f / fps) * 2) * 3;
   const glowPulse = 0.7 + Math.sin((f / fps) * 5) * 0.3;
 
-  const opacity = interpolate(f, [0, 2, 14, 20], [0, 1, 1, 0], {
+  // Fade-out crossfades with BrandRevealScene entrance
+  const opacity = interpolate(f, [0, 2, 10, 18], [0, 1, 1, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });

@@ -48,8 +48,8 @@ export const BrandRevealScene: React.FC<{
     extrapolateRight: "clamp",
   });
 
-  // Shimmer on logo text
-  const shimmerX = interpolate(f, [logoDelay, logoDelay + 30], [-100, 200], {
+  // Shimmer on logo text - starts bright, sweeps to reveal gradient
+  const shimmerX = interpolate(f, [logoDelay, logoDelay + 20], [-50, 250], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -152,28 +152,28 @@ export const BrandRevealScene: React.FC<{
               gap: 20,
             }}
           >
-            {/* Infinity symbol - metallic */}
+            {/* Infinity symbol - metallic bright */}
             <span
               style={{
                 fontSize: 90,
                 fontWeight: 300,
-                background: "linear-gradient(135deg, #ffffff 0%, #d0d0d8 40%, #a0a0a8 100%)",
+                background: "linear-gradient(135deg, #ffffff 0%, #e8e8f0 40%, #c0c0cc 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
-                filter: "drop-shadow(0 0 12px rgba(200,220,255,0.2))",
+                filter: "drop-shadow(0 0 15px rgba(200,220,255,0.35))",
                 lineHeight: 1,
               }}
             >
               ∞
             </span>
 
-            {/* "Infinite" with shimmer gradient */}
+            {/* "Infinite" with shimmer gradient - much brighter base */}
             <span
               style={{
                 fontSize: 76,
                 fontWeight: 500,
                 letterSpacing: "-0.03em",
-                background: `linear-gradient(90deg, #ffffff ${shimmerX - 50}%, #e0e0e8 ${shimmerX}%, #a0a0a8 ${shimmerX + 50}%, #808088 100%)`,
+                background: `linear-gradient(90deg, #ffffff ${shimmerX - 40}%, #f0f0f4 ${shimmerX}%, #c8c8d0 ${shimmerX + 40}%, #a0a0a8 100%)`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 lineHeight: 1,

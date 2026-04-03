@@ -151,11 +151,11 @@ export const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
             key={i}
             style={{
               position: "absolute",
-              left: node.x - 28,
-              top: node.y - 28,
-              width: 56,
-              height: 56,
-              borderRadius: 14,
+              left: node.x - 32,
+              top: node.y - 32,
+              width: 64,
+              height: 64,
+              borderRadius: 16,
               background: nodeColor,
               border: `1.5px solid ${lineColor}`,
               boxShadow: `0 0 ${18 * nodeGlow}px ${glowColor}40, inset 0 1px 0 rgba(255,255,255,0.15)`,
@@ -167,7 +167,7 @@ export const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
           >
             <span
               style={{
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: 600,
                 color: textColor,
                 letterSpacing: "0.05em",

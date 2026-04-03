@@ -16,7 +16,8 @@ export const LightStreakTransition: React.FC<{
   const frame = useCurrentFrame();
   const f = frame - startFrame;
 
-  if (f < 0 || f > 16) return null;
+  // Tighter window to avoid overlap with ObjectsScene entrance
+  if (f < 0 || f > 14) return null;
 
   // Small initial glow point (visible before streak)
   const glowOpacity = interpolate(f, [0, 2, 4, 8], [0.6, 1, 0.8, 0], {
@@ -34,14 +35,14 @@ export const LightStreakTransition: React.FC<{
   const streakX = interpolate(streakProgress, [0, 1], [1200, 400]);
   const streakY = interpolate(streakProgress, [0, 1], [800, 350]);
 
-  // Streak opacity
-  const streakOpacity = interpolate(f, [2, 4, 10, 14], [0, 1, 0.8, 0], {
+  // Streak opacity - fade out quicker to not overlap with objects
+  const streakOpacity = interpolate(f, [2, 4, 8, 12], [0, 1, 0.7, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   // Streak length grows then shrinks
-  const streakLength = interpolate(f, [2, 6, 10, 14], [50, 250, 200, 80], {
+  const streakLength = interpolate(f, [2, 6, 9, 12], [50, 250, 180, 60], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });

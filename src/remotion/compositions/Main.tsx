@@ -77,7 +77,7 @@ export const Main: React.FC = () => {
   // Bottom glow - phase 2 (brand reveal scenes)
   const bottomGlowOpacity2 = interpolate(
     frame,
-    [164, 172, 340, 355],
+    [158, 168, 340, 355],
     [0, 0.15, 0.15, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
@@ -136,8 +136,8 @@ export const Main: React.FC = () => {
         {/* Scene 6: Infinity disc on zoomed cylinder */}
         <InfinityDiscScene startFrame={148} />
 
-        {/* Scene 7: "Meet ∞" → "∞ Infinite" brand reveal */}
-        <BrandRevealScene startFrame={164} />
+        {/* Scene 7: "Meet ∞" → "∞ Infinite" brand reveal (starts earlier for smooth crossfade) */}
+        <BrandRevealScene startFrame={158} />
 
         {/* Scene 8: "Fast." purple lightning feature */}
         <FastFeatureScene startFrame={230} />

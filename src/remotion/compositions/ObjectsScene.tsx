@@ -156,32 +156,32 @@ export const ObjectsScene: React.FC<{
           opacity: objectsOpacity * sphereEntrance,
         }}
       >
-        {/* Motion trail - stretched ellipse behind sphere */}
+        {/* Motion trail - stretched ellipse behind sphere, brighter */}
         <div
           style={{
             position: "absolute",
             left: "50%",
             top: "50%",
             width: trailLength,
-            height: 12,
-            transform: `translate(10px, -6px) rotate(${trailAngle}deg)`,
+            height: 18,
+            transform: `translate(14px, -9px) rotate(${trailAngle}deg)`,
             transformOrigin: "left center",
             background:
-              "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0.5) 70%, rgba(255,255,255,0.8) 100%)",
-            filter: "blur(4px)",
+              "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 15%, rgba(255,255,255,0.55) 60%, rgba(255,255,255,0.85) 100%)",
+            filter: "blur(5px)",
             borderRadius: "50%",
           }}
         />
 
-        {/* Sphere core */}
+        {/* Sphere core - larger and brighter */}
         <div
           style={{
-            width: 28,
-            height: 28,
+            width: 42,
+            height: 42,
             borderRadius: "50%",
             background:
-              "radial-gradient(circle at 40% 35%, white, rgba(210,230,255,0.9) 40%, rgba(150,190,255,0.4) 100%)",
-            boxShadow: `0 0 ${sphereGlow}px ${sphereGlow / 2}px rgba(255,255,255,0.7), 0 0 ${sphereGlow * 2.5}px rgba(255,255,255,0.2)`,
+              "radial-gradient(circle at 40% 35%, white, rgba(220,240,255,0.95) 35%, rgba(180,210,255,0.6) 70%, rgba(150,190,255,0.3) 100%)",
+            boxShadow: `0 0 ${sphereGlow * 1.5}px ${sphereGlow}px rgba(255,255,255,0.8), 0 0 ${sphereGlow * 3}px rgba(255,255,255,0.3)`,
             position: "relative",
             zIndex: 2,
           }}
