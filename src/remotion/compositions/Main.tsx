@@ -23,43 +23,53 @@ const { fontFamily } = loadFont("normal", {
 /**
  * Main composition - "Global payments are a pain" animation.
  *
- * Timeline (at 30fps, ~8 seconds total = 240 frames):
+ * Matched to reference frames at 200ms intervals (30fps):
  *
- * Scene 1 (0-60):    Text reveal - "Global payments" → "are" → "a pain"
- * Scene 2 (48-105):  "a pain" with 3D perspective rotation + camera fly-through
- * Scene 3 (90-115):  Light streak transition
- * Scene 4 (105-175): Red card + white sphere on perspective grid
- * Scene 5 (160-230): Cyan cylinder morphing + zoom finale
- * Buffer (230-240):  Hold on black
+ * Ref 1-4   (0-600ms)    F0-9:    "Global payments" gradient reveal + fade
+ * Ref 5     (800ms)       F10-14:  "are" appears
+ * Ref 6     (1000ms)      F13-17:  "are a" sequence
+ * Ref 7-9   (1200-1600ms) F17-24:  "a pain" reveals and holds
+ * Ref 10-12 (1800-2200ms) F27-36:  3D perspective rotation + camera zoom
+ * Ref 13-15 (2400-2800ms) F36-42:  Extreme zoom through "pain" text
+ * Ref 16    (3000ms)      F45:     Text gone, grid + white glow point
+ * Ref 17-19 (3200-3600ms) F48-54:  Light streak across grid
+ * Ref 20    (3800ms)      F57:     Red card + white sphere appear
+ * Ref 21-28 (4000-5400ms) F60-81:  Sphere approaches card slowly
+ * Ref 29    (5600ms)      F84:     Cyan disc appears (merge)
+ * Ref 30-31 (5800-6000ms) F87-90:  Cylinder morph
+ * Ref 32    (6200ms)      F93:     Final close-up zoom
+ * Buffer                  F93-120: Hold + gentle fade
  */
 export const Main: React.FC = () => {
   const frame = useCurrentFrame();
-  // Scene timing managed by frame offsets
+  // timing managed via startFrame offsets per scene
 
-  // Grid visibility - flat grid for text scenes, perspective grid for 3D scenes
-  const flatGridOpacity = interpolate(frame, [0, 5, 85, 100], [0, 0.25, 0.25, 0], {
+  // === BACKGROUND LAYERS ===
+
+  // Flat grid (text scenes: frames 0-45)
+  const flatGridOpacity = interpolate(frame, [0, 2, 40, 48], [0.2, 0.25, 0.25, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
-  const perspectiveGridOpacity = interpolate(
+  // Perspective grid (3D scenes: frames 45-115)
+  const perspGridOpacity = interpolate(
     frame,
-    [95, 110, 210, 225],
-    [0, 0.3, 0.3, 0],
+    [42, 48, 105, 115],
+    [0, 0.45, 0.45, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-  // Bottom glow visibility
+  // Bottom glow
   const bottomGlowOpacity = interpolate(
     frame,
-    [0, 10, 85, 95, 110, 120, 210, 225],
-    [0, 0.4, 0.4, 0, 0, 0.3, 0.3, 0],
+    [0, 3, 40, 48, 50, 55, 105, 115],
+    [0.3, 0.4, 0.4, 0, 0, 0.25, 0.25, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
   return (
     <>
-      {/* Thumbnail artifact */}
       {frame === 0 && (
         <Artifact content={Artifact.Thumbnail} filename="thumbnail.jpeg" />
       )}
@@ -71,33 +81,42 @@ export const Main: React.FC = () => {
           overflow: "hidden",
         }}
       >
-        {/* Flat grid background (text scenes) */}
-        <div style={{ opacity: flatGridOpacity }}>
-          <FlatGrid opacity={1} />
-        </div>
+        {/* Flat grid (text scenes) */}
+        {flatGridOpacity > 0.01 && (
+          <div style={{ opacity: flatGridOpacity }}>
+            <FlatGrid opacity={1} />
+          </div>
+        )}
 
         {/* Perspective grid (3D object scenes) */}
-        <div style={{ opacity: perspectiveGridOpacity }}>
-          <PerspectiveGridAnimated startFrame={95} />
-        </div>
+        {perspGridOpacity > 0.01 && (
+          <div style={{ opacity: perspGridOpacity }}>
+            <PerspectiveGridAnimated startFrame={42} />
+          </div>
+        )}
 
         {/* Bottom glow */}
         <BottomGlow opacity={bottomGlowOpacity} />
 
-        {/* Scene 1: Text reveal sequence */}
+        {/* Scene 1: Text reveal — "Global payments" → "are" → "a pain" */}
+        {/* Frames 0-28 */}
         <TextRevealScene startFrame={0} />
 
-        {/* Scene 2: Perspective text + camera fly-through */}
-        <PerspectiveTextScene startFrame={48} />
+        {/* Scene 2: "a pain" 3D perspective zoom-through */}
+        {/* Starts at frame 24 (overlaps end of text scene), ends ~46 */}
+        <PerspectiveTextScene startFrame={24} />
 
         {/* Scene 3: Light streak transition */}
-        <LightStreakTransition startFrame={90} />
+        {/* Frames 44-60 */}
+        <LightStreakTransition startFrame={44} />
 
         {/* Scene 4: Red card + white sphere */}
-        <ObjectsScene startFrame={105} />
+        {/* Frames 55-85 */}
+        <ObjectsScene startFrame={55} />
 
         {/* Scene 5: Cyan cylinder morphing finale */}
-        <CyanCylinderScene startFrame={160} />
+        {/* Frames 82-112 */}
+        <CyanCylinderScene startFrame={82} />
 
         {/* Ambient floating particles */}
         <FloatingParticles />
@@ -115,14 +134,14 @@ const FloatingParticles: React.FC = () => {
   const time = frame / fps;
 
   const particles = React.useMemo(() => {
-    return Array.from({ length: 8 }, (_, i) => ({
+    return Array.from({ length: 6 }, (_, i) => ({
       id: i,
-      x: (i * 247 + 100) % 1920,
-      y: (i * 389 + 200) % 1080,
-      size: 2 + (i % 3) * 1.5,
-      speedX: (i % 2 === 0 ? 1 : -1) * (0.3 + (i * 0.1)),
-      speedY: (i % 3 === 0 ? 1 : -1) * (0.2 + (i * 0.08)),
-      phase: i * 0.7,
+      x: (i * 317 + 200) % 1920,
+      y: (i * 439 + 150) % 1080,
+      size: 1.5 + (i % 3) * 1,
+      speedX: (i % 2 === 0 ? 1 : -1) * (0.4 + i * 0.08),
+      speedY: (i % 3 === 0 ? 1 : -1) * (0.25 + i * 0.06),
+      phase: i * 0.9,
     }));
   }, []);
 
@@ -132,14 +151,13 @@ const FloatingParticles: React.FC = () => {
         position: "absolute",
         inset: 0,
         pointerEvents: "none",
-        opacity: 0.3,
+        opacity: 0.2,
       }}
     >
       {particles.map((p) => {
-        const x = p.x + Math.sin(time * p.speedX + p.phase) * 40;
-        const y = p.y + Math.cos(time * p.speedY + p.phase) * 30;
-        const particleOpacity =
-          0.3 + Math.sin(time * 1.5 + p.phase) * 0.3;
+        const x = p.x + Math.sin(time * p.speedX + p.phase) * 35;
+        const y = p.y + Math.cos(time * p.speedY + p.phase) * 25;
+        const particleOpacity = 0.3 + Math.sin(time * 1.5 + p.phase) * 0.25;
 
         return (
           <div
@@ -151,8 +169,7 @@ const FloatingParticles: React.FC = () => {
               width: p.size,
               height: p.size,
               borderRadius: "50%",
-              background: "rgba(255,255,255,0.6)",
-              filter: `blur(${p.size > 3 ? 1 : 0}px)`,
+              background: "rgba(255,255,255,0.5)",
               opacity: particleOpacity,
             }}
           />

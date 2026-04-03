@@ -1,34 +1,63 @@
 import React from "react";
-import {
-  useCurrentFrame,
-  interpolate,
-} from "remotion";
+import { useCurrentFrame, interpolate } from "remotion";
 
 /**
- * Scene 1: Sequential word reveal with gradient fade.
- * "Global payments" → "are" → "a pain"
- * Each word fades in with a left-to-right gradient mask effect.
+ * Scene 1: Sequential text replacement with gradient reveal.
+ * Only ONE phrase shown at a time, each with gradient left-to-right reveal.
+ *
+ * Reference timing (at 30fps):
+ * Frames 0-9:   "Global payments" gradient reveal then fade
+ * Frames 9-14:  "are" appears with gradient reveal then fades
+ * Frames 13-18: "are a" appears then fades
+ * Frames 17-26: "a pain" reveals and holds (transitions to perspective scene)
  */
+
+interface TextPhase {
+  text: string;
+  enter: number;     // frame when this text starts appearing
+  revealDone: number; // frame when gradient reveal is complete
+  exitStart: number;  // frame when fade-out begins
+  exitDone: number;   // frame when fully invisible
+}
+
+const phases: TextPhase[] = [
+  {
+    text: "Global payments",
+    enter: -3,      // already mid-reveal at frame 0
+    revealDone: 5,
+    exitStart: 6,
+    exitDone: 9,
+  },
+  {
+    text: "are",
+    enter: 9,
+    revealDone: 12,
+    exitStart: 13,
+    exitDone: 15,
+  },
+  {
+    text: "are a",
+    enter: 14,
+    revealDone: 17,
+    exitStart: 18,
+    exitDone: 20,
+  },
+  {
+    text: "a pain",
+    enter: 18,
+    revealDone: 22,
+    exitStart: 24,  // fades as perspective scene takes over
+    exitDone: 27,
+  },
+];
+
 export const TextRevealScene: React.FC<{
   startFrame?: number;
 }> = ({ startFrame = 0 }) => {
   const frame = useCurrentFrame();
   const f = frame - startFrame;
 
-  if (f < 0) return null;
-
-  // Timeline (in frames at 30fps):
-  // 0-24: "Global payments" fades in (0-800ms)
-  // 12-30: "are" appears below/replaces (400-1000ms)
-  // 24-42: "are a" → "a pain" sequence (800-1400ms)
-  // 42-54: "a pain" holds with subtle gradient (1400-1800ms)
-
-  // Words and their timing
-  const words = [
-    { text: "Global payments", start: 0, end: 20, fadeIn: 8, fadeOut: 4 },
-    { text: "are", start: 16, end: 32, fadeIn: 6, fadeOut: 4 },
-    { text: "a pain", start: 28, end: 60, fadeIn: 8, fadeOut: 0 },
-  ];
+  if (f < 0 || f > 28) return null;
 
   return (
     <div
@@ -40,58 +69,51 @@ export const TextRevealScene: React.FC<{
         justifyContent: "center",
       }}
     >
-      {words.map((word, index) => {
-        if (f < word.start || f > word.end + 10) return null;
+      {phases.map((phase, index) => {
+        // Skip if not in this phase's active window
+        if (f < phase.enter || f > phase.exitDone + 2) return null;
 
-        // Fade in progress
-        const fadeInProgress = interpolate(
+        // Gradient reveal progress (left-to-right mask)
+        const revealProgress = interpolate(
           f,
-          [word.start, word.start + word.fadeIn],
-          [0, 1],
+          [phase.enter, phase.revealDone],
+          [0, 130],
           { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
         );
 
-        // Fade out progress
-        const fadeOutProgress =
-          word.fadeOut > 0
-            ? interpolate(f, [word.end - word.fadeOut, word.end], [1, 0], {
-                extrapolateLeft: "clamp",
-                extrapolateRight: "clamp",
-              })
-            : 1;
-
-        const opacity = fadeInProgress * fadeOutProgress;
-
-        // Gradient mask for text reveal (left to right)
-        const gradientProgress = interpolate(
+        // Fade out opacity
+        const fadeOut = interpolate(
           f,
-          [word.start, word.start + word.fadeIn + 4],
-          [0, 100],
+          [phase.exitStart, phase.exitDone],
+          [1, 0],
           { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
         );
 
-        const maskGradient = `linear-gradient(to right, white ${gradientProgress - 10}%, transparent ${gradientProgress + 30}%)`;
+        const maskGradient =
+          revealProgress < 130
+            ? `linear-gradient(to right, white ${revealProgress - 15}%, transparent ${revealProgress + 20}%)`
+            : undefined;
 
         return (
           <div
             key={index}
             style={{
               position: "absolute",
-              opacity,
-              WebkitMaskImage: gradientProgress < 100 ? maskGradient : "none",
-              maskImage: gradientProgress < 100 ? maskGradient : "none",
+              opacity: fadeOut,
+              WebkitMaskImage: maskGradient,
+              maskImage: maskGradient,
             }}
           >
             <span
               style={{
-                fontSize: 90,
-                fontWeight: 600,
+                fontSize: 88,
+                fontWeight: 500,
                 color: "white",
-                letterSpacing: "-0.02em",
+                letterSpacing: "-0.025em",
                 whiteSpace: "nowrap",
               }}
             >
-              {word.text}
+              {phase.text}
             </span>
           </div>
         );
